@@ -44,23 +44,29 @@ export default function SignUpPage() {
     };
   }, [router]);
 
-  async function handleGoogleSignIn() {
+   async function handleGoogleSignIn() {
     setError(null);
     isLoading(true);
 
     try {
-      if (useRedirectFlow) {
-        await signInWithRedirect(auth, googleProvider);
-        
-      } else {
-        const result = await signInWithPopup(auth, googleProvider);
-        if (result?.user) {
-          router.push("/dashboard");
-        }
-        isLoading(false);
+      const result = await signInWithPopup(auth, googleProvider);
+
+      if (result.user) {
+        console.log("Google login successful:", result.user.email);
+
+        // Give Firebase a moment to persist the session
+        await auth.currentUser?.getIdToken();
+
+        router.replace("/dashboard");
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "unable to connect with google";
+      console.error("Google sign-in error:", err);
+
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Unable to connect with Google";
+
       setError(message);
       isLoading(false);
     }
